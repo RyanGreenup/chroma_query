@@ -46,14 +46,18 @@ def convert_results_to_dataframe(results: QueryResult) -> pd.DataFrame:
     return pd.DataFrame(data)
 
 
-# Factor out the logic for loading all the documents in AI!
-def main() -> None:
-    client = initialize_chroma_client()
-    collection = create_collection(client, name="my_collection")
-
+def load_sample_documents(collection: Collection) -> None:
+    """Load sample documents into the collection."""
     documents = ["A really fancy bar", "I took the dog for a walk", "I went to bed"]
     ids = ["id1", "id2", "id3"]
     add_documents(collection, documents, ids)
+
+
+def main() -> None:
+    client = initialize_chroma_client()
+    collection = create_collection(client, name="my_collection")
+    
+    load_sample_documents(collection)
 
     query_texts = ["Pineapple in a bedroom"]
     results = query_collection(collection, query_texts, n_results=2)
