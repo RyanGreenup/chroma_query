@@ -15,7 +15,10 @@ import typer
 
 DEFAULT_CHUNK_SIZE = int(1000 * 4)  # ~1000 tokens
 
-app = typer.Typer(pretty_exceptions_enable=False)
+app = typer.Typer(
+    pretty_exceptions_enable=False,
+    context_settings={"help_option_names": ["-h", "--help"]}
+)
 
 
 def initialize_chroma_client() -> ClientAPI:
