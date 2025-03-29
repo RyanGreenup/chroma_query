@@ -1,34 +1,35 @@
 import chromadb
+from chromadb.api.types import ClientAPI, Collection, QueryResult
 from pprint import pprint
 import pandas as pd
 from typing import List, Dict
 
 
-def initialize_chroma_client() -> chromadb.Client:
+def initialize_chroma_client() -> ClientAPI:
     """Initialize and return a Chroma client."""
     return chromadb.Client()
 
 
-def create_collection(client: chromadb.Client, name: str) -> chromadb.Collection:
+def create_collection(client: ClientAPI, name: str) -> Collection:
     """Create a collection with the given name."""
     return client.create_collection(name=name)
 
 
 def add_documents(
-    collection: chromadb.Collection, documents: List[str], ids: List[str]
+    collection: Collection, documents: List[str], ids: List[str]
 ) -> None:
     """Add documents to the specified collection."""
     collection.add(documents=documents, ids=ids)
 
 
 def query_collection(
-    collection: chromadb.Collection, query_texts: List[str], n_results: int
-) -> Dict:
+    collection: Collection, query_texts: List[str], n_results: int
+) -> QueryResult:
     """Query the collection with specific texts and return results."""
     return collection.query(query_texts=query_texts, n_results=n_results)
 
 
-def convert_results_to_dataframe(results: Dict) -> pd.DataFrame:
+def convert_results_to_dataframe(results: QueryResult) -> pd.DataFrame:
     """Convert query results to a pandas DataFrame."""
     data = {
         "ids": [item for sublist in results["ids"] for item in sublist],
