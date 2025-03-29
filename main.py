@@ -1,3 +1,4 @@
+from pathlib import Path
 import chromadb
 from pprint import pprint
 import pandas as pd
@@ -5,6 +6,11 @@ from typing import List
 from chromadb.api.types import QueryResult
 from chromadb.api import ClientAPI
 from chromadb.api.models.Collection import Collection
+
+
+import typer
+
+app = typer.Typer(pretty_exceptions_enable=False)
 
 
 def initialize_chroma_client() -> ClientAPI:
@@ -17,7 +23,9 @@ def create_collection(client: ClientAPI, name: str) -> Collection:
     return client.create_collection(name=name)
 
 
-def add_documents(collection: chromadb.Collection, documents: List[str], ids: List[str]) -> None:
+def add_documents(
+    collection: chromadb.Collection, documents: List[str], ids: List[str]
+) -> None:
     """Add documents to the specified collection."""
     collection.add(documents=documents, ids=ids)
 
@@ -40,8 +48,12 @@ def convert_results_to_dataframe(results: QueryResult) -> pd.DataFrame:
     data = {
         "ids": [item for sublist in ids for item in sublist] if ids else [],
         "documents": [item for sublist in docs for item in sublist] if docs else [],
-        "distances": [item for sublist in distances for item in sublist] if distances else [],
-        "metadatas": [item for sublist in metadatas for item in sublist] if metadatas else [],
+        "distances": (
+            [item for sublist in distances for item in sublist] if distances else []
+        ),
+        "metadatas": (
+            [item for sublist in metadatas for item in sublist] if metadatas else []
+        ),
     }
     return pd.DataFrame(data)
 
@@ -53,10 +65,11 @@ def load_sample_documents(collection: Collection) -> None:
     add_documents(collection, documents, ids)
 
 
-def main() -> None:
+@app.command()
+def main(collection_name: str, docs_dir: Path) -> None:
     client = initialize_chroma_client()
-    collection = create_collection(client, name="my_collection")
-    
+    collection = create_collection(client, name=collection_name)
+
     load_sample_documents(collection)
 
     query_texts = ["Pineapple in a bedroom"]
@@ -67,4 +80,4 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    app()
