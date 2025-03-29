@@ -29,10 +29,26 @@ def query_collection(
 def convert_results_to_dataframe(results: dict[str, Any]) -> pd.DataFrame:
     """Convert query results to a pandas DataFrame."""
     data = {
-        "ids": [item for sublist in results.get("ids", []) for item in sublist] if results.get("ids") else [],
-        "documents": [item for sublist in results.get("documents", []) for item in sublist] if results.get("documents") else [],
-        "distances": [item for sublist in results.get("distances", []) for item in sublist] if results.get("distances") else [],
-        "metadatas": [item for sublist in results.get("metadatas", []) for item in sublist] if results.get("metadatas") else [],
+        "ids": (
+            [item for sublist in results.get("ids", []) for item in sublist]
+            if results.get("ids")
+            else []
+        ),
+        "documents": (
+            [item for sublist in results.get("documents", []) for item in sublist]
+            if results.get("documents")
+            else []
+        ),
+        "distances": (
+            [item for sublist in results.get("distances", []) for item in sublist]
+            if results.get("distances")
+            else []
+        ),
+        "metadatas": (
+            [item for sublist in results.get("metadatas", []) for item in sublist]
+            if results.get("metadatas")
+            else []
+        ),
     }
     return pd.DataFrame(data)
 
