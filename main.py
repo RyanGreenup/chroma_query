@@ -141,7 +141,23 @@ def upload(
 
     print(f"Documents uploaded to collection '{collection_name}'")
 
-# Write a function to delete a collection AI!
+
+@app.command()
+def delete_collection(
+    collection_name: str,
+    host: str = "localhost",
+    port: int = 8000,
+) -> None:
+    """Delete a ChromaDB collection by name."""
+    client = chromadb.HttpClient(host, port)
+    
+    try:
+        client.delete_collection(name=collection_name)
+        print(f"Collection '{collection_name}' has been deleted.")
+    except ValueError:
+        print(f"Collection '{collection_name}' not found.")
+    except Exception as e:
+        print(f"Error deleting collection '{collection_name}': {e}")
 
 
 @app.command()
