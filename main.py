@@ -1,32 +1,32 @@
 import chromadb
 from pprint import pprint
 import pandas as pd
-from typing import Any, Optional, list
+from typing import Any, List
 
 
-def initialize_chroma_client():
+def initialize_chroma_client() -> chromadb.ClientAPI:
     """Initialize and return a Chroma client."""
     return chromadb.Client()
 
 
-def create_collection(client, name: str):
+def create_collection(client: chromadb.ClientAPI, name: str) -> chromadb.Collection:
     """Create a collection with the given name."""
     return client.create_collection(name=name)
 
 
-def add_documents(collection, documents: list[str], ids: list[str]) -> None:
+def add_documents(collection: chromadb.Collection, documents: List[str], ids: List[str]) -> None:
     """Add documents to the specified collection."""
     collection.add(documents=documents, ids=ids)
 
 
 def query_collection(
-    collection, query_texts: list[str], n_results: int
-) -> dict[str, Any]:
+    collection: chromadb.Collection, query_texts: List[str], n_results: int
+) -> dict:
     """Query the collection with specific texts and return results."""
     return collection.query(query_texts=query_texts, n_results=n_results)
 
 
-def convert_results_to_dataframe(results: dict[str, Any]) -> pd.DataFrame:
+def convert_results_to_dataframe(results: dict) -> pd.DataFrame:
     """Convert query results to a pandas DataFrame."""
     data = {
         "ids": (
