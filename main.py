@@ -15,6 +15,8 @@ from chromadb.api.models.Collection import Collection, CollectionName
 
 import typer
 
+DEFAULT_CHUNK_SIZE = int(1000 * 4)  # ~1000 tokens
+
 app = typer.Typer(pretty_exceptions_enable=False)
 
 
@@ -45,13 +47,13 @@ def query_collection(
 
 
 
-def chunk_text(text: str, chunk_size: int = 2000) -> list[str]:
+def chunk_text(text: str, chunk_size: int = DEFAULT_CHUNK_SIZE) -> list[str]:
     """Split text into chunks of specified size."""
     return [text[i : i + chunk_size] for i in range(0, len(text), chunk_size)]
 
 
 def load_documents_from_directory(
-    collection: Collection, directory: Path, chunk_size: int = int(2000 / 4)
+    collection: Collection, directory: Path, chunk_size: int = int(DEFAULT_CHUNK_SIZE)
 ) -> None:
     """
     Walk over a directory, read files, split into chunks, and load into ChromaDB.
@@ -76,7 +78,6 @@ def load_documents_from_directory(
 
                 # Split into chunks
                 chunks = chunk_text(content, chunk_size)
-                print(chunks)
 
                 # Generate unique IDs for each chunk
                 ids = [str(uuid.uuid4()) for _ in range(len(chunks))]
@@ -147,7 +148,7 @@ def collection_exists(client: ClientAPI, collection_name: str) -> bool:
 def upload(
     collection_name: str,
     docs_dir: Path,
-    chunk_size: int = int(2000 / 4),
+    chunk_size: int = int(DEFAULT_CHUNK_SIZE),
     host: str = "localhost",
     port: int = 8000,
 ) -> None:
