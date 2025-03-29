@@ -30,7 +30,6 @@ def create_collection(client: ClientAPI, name: str) -> Collection:
     return client.create_collection(name=name)
 
 
-
 def add_documents(
     collection: chromadb.Collection, documents: list[str], ids: list[str]
 ) -> None:
@@ -43,8 +42,6 @@ def query_collection(
 ) -> QueryResult:
     """Query the collection with specific texts and return results."""
     return collection.query(query_texts=query_texts, n_results=n_results)
-
-
 
 
 def chunk_text(text: str, chunk_size: int = DEFAULT_CHUNK_SIZE) -> list[str]:
@@ -102,15 +99,17 @@ def load_documents_from_directory(
 
 
 @app.command("mk")
-def user_create_collection(name: str, host: str = "localhost", port: int  = 8000):
+def user_create_collection(name: str, host: str = "localhost", port: int = 8000):
     client = chromadb.HttpClient(host, port)
     create_collection(client, name)
+
 
 def list_collections(client: ClientAPI) -> Sequence[CollectionName]:
     return client.list_collections()
 
+
 @app.command("ls")
-def user_list_collections(host: str = "localhost", port: int=8000) -> None:
+def user_list_collections(host: str = "localhost", port: int = 8000) -> None:
     """List all available collections in the ChromaDB."""
     client = chromadb.HttpClient(host, port)
     collections = list_collections(client)
@@ -129,7 +128,7 @@ def user_list_collections(host: str = "localhost", port: int=8000) -> None:
             try:
                 id = str(collection.id)
             except Exception as e:
-                id ="ERROR: {e}"
+                id = "ERROR: {e}"
             try:
                 doc_count = collection.count()
             except Exception as e:
@@ -138,6 +137,7 @@ def user_list_collections(host: str = "localhost", port: int=8000) -> None:
             print(json.dumps(info, indent=2))
         except Exception as e:
             print(f"{i}. {collection_name} (error accessing collection: {e})")
+
 
 def collection_exists(client: ClientAPI, collection_name: str) -> bool:
     collections = list_collections(client)
@@ -167,6 +167,7 @@ def upload(
 
     print(f"Documents uploaded to collection '{collection_name}'")
 
+
 @app.command()
 def query(
     collection_name: str,
@@ -195,14 +196,15 @@ def query(
         # Display results
         print(json.dumps(results, indent=4))
     else:
-        if (docs := results.get("documents")):
+        if docs := results.get("documents"):
             print(f"Found {len(docs[0])} results:")
             for i, chunks in enumerate(docs):
-                print(f"\nResults for query: {results['metadatas'][i] if 'metadatas' in results else ''}")
+                print(
+                    f"\nResults for query: {results['metadatas'][i] if 'metadatas' in results else ''}"
+                )
                 for j, chunk in enumerate(chunks):
                     print(f"\n--- Result {j+1} ---")
                     print(chunk)
-
 
 
 @app.command("rm")
@@ -221,10 +223,6 @@ def delete_collection(
         print(f"Collection '{collection_name}' not found.")
     except Exception as e:
         print(f"Error deleting collection '{collection_name}': {e}")
-
-
-
-
 
 
 if __name__ == "__main__":
