@@ -1,0 +1,16 @@
+[33mWARNING[0m:  [29-03-2025 12:49:14] chroma_server_nofile cannot be set to a value greater than the current hard limit of 4096. Keeping soft limit at 1024
+[32mINFO[0m:     [29-03-2025 12:49:14] Anonymized telemetry enabled. See                     https://docs.trychroma.com/telemetry for more information.
+[36mDEBUG[0m:    [29-03-2025 12:49:14] Starting component System
+[36mDEBUG[0m:    [29-03-2025 12:49:14] Starting component OpenTelemetryClient
+[36mDEBUG[0m:    [29-03-2025 12:49:14] Starting component SqliteDB
+[36mDEBUG[0m:    [29-03-2025 12:49:14] Starting component SimpleQuotaEnforcer
+[36mDEBUG[0m:    [29-03-2025 12:49:14] Starting component Posthog
+[36mDEBUG[0m:    [29-03-2025 12:49:14] Starting component SimpleRateLimitEnforcer
+[36mDEBUG[0m:    [29-03-2025 12:49:14] Starting component LocalSegmentManager
+[36mDEBUG[0m:    [29-03-2025 12:49:14] Starting component LocalExecutor
+[36mDEBUG[0m:    [29-03-2025 12:49:14] Starting component SegmentAPI
+[36mDEBUG[0m:    [29-03-2025 12:49:14] Starting component SimpleAsyncRateLimitEnforcer
+[32mINFO[0m:     [29-03-2025 12:49:14] Started server process [[36m25476[0m]
+[32mINFO[0m:     [29-03-2025 12:49:14] Waiting for application startup.
+[32mINFO[0m:     [29-03-2025 12:49:14] Application startup complete.
+[32mINFO[0m:     [29-03-2025 12:49:14] Uvicorn running on [1mhttp://localhost:8000[0m (Press CTRL+C to quit)
