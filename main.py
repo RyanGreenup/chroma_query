@@ -210,7 +210,7 @@ def rename_collection(
         client.get_collection(name=new_name)
         print(f"Collection '{new_name}' already exists. Please choose a different name.")
         return
-    except ValueError:
+    except (ValueError, chromadb.errors.InvalidCollectionException):
         # This is expected - we want the new name to not exist yet
         pass
     
