@@ -38,11 +38,10 @@ def convert_results_to_dataframe(results: QueryResult) -> pd.DataFrame:
     metadatas = results.get("metadatas", [])
     
     data = {
-        "ids": [item for sublist in ids for item in sublist] if results.get("ids") else [],
-        # Continue the pattern AI!
-        "documents": [item for sublist in results.get("documents", []) for item in sublist] if results.get("documents") else [],
-        "distances": [item for sublist in results.get("distances", []) for item in sublist] if results.get("distances") else [],
-        "metadatas": [item for sublist in results.get("metadatas", []) for item in sublist] if results.get("metadatas") else [],
+        "ids": [item for sublist in ids for item in sublist] if ids else [],
+        "documents": [item for sublist in docs for item in sublist] if docs else [],
+        "distances": [item for sublist in distances for item in sublist] if distances else [],
+        "metadatas": [item for sublist in metadatas for item in sublist] if metadatas else [],
     }
     return pd.DataFrame(data)
 
