@@ -1,6 +1,7 @@
 from pathlib import Path
 import chromadb
 from pprint import pprint
+from chromadb.errors import UniqueConstraintError
 from chromadb.types import Metadata
 import pandas as pd
 from tqdm import tqdm
@@ -60,13 +61,14 @@ def convert_results_to_dataframe(results: QueryResult) -> pd.DataFrame:
     return pd.DataFrame(data)
 
 
-
 def chunk_text(text: str, chunk_size: int = 2000) -> list[str]:
     """Split text into chunks of specified size."""
     return [text[i : i + chunk_size] for i in range(0, len(text), chunk_size)]
 
 
-def load_documents_from_directory(collection: Collection, directory: Path, chunk_size: int = int(2000/4)) -> None:
+def load_documents_from_directory(
+    collection: Collection, directory: Path, chunk_size: int = int(2000 / 4)
+) -> None:
     """
     Walk over a directory, read files, split into chunks, and load into ChromaDB.
 
@@ -114,10 +116,20 @@ def load_documents_from_directory(collection: Collection, directory: Path, chunk
 
 
 @app.command()
-def upload(collection_name: str, docs_dir: Path, chunk_size: int = int(2000/4)) -> None:
+def upload(
+    collection_name: str,
+    docs_dir: Path,
+    chunk_size: int = int(2000 / 4),
+    host: str = "localhost",
+    port: int = 8000,
+) -> None:
     """Upload documents from a directory to a ChromaDB collection."""
-    client = initialize_chroma_client()
-    collection = create_collection(client, name=collection_name)
+    client = chromadb.HttpClient(host, port)
+    try:
+        collection = create_collection(client, name=collection_name)
+    except UniqueConstraintError:
+        print(f"Warning: {collection_name} already exists")
+        # Get the collection here AI!
 
     # Load documents from the specified directory
     if docs_dir.exists() and docs_dir.is_dir():
@@ -129,15 +141,23 @@ def upload(collection_name: str, docs_dir: Path, chunk_size: int = int(2000/4)) 
 
 
 @app.command()
-def query(collection_name: str, query_text: str, n_results: int = 2) -> None:
+def query(
+    collection_name: str,
+    query_text: str,
+    n_results: int = 2,
+    host: str = "localhost",
+    port: int = 8000,
+) -> None:
     """Query a ChromaDB collection with the specified text."""
-    client = initialize_chroma_client()
+    client = chromadb.HttpClient(host, port)
 
     # Get the existing collection
     try:
         collection = client.get_collection(name=collection_name)
     except ValueError:
-        print(f"Collection '{collection_name}' not found. Please upload documents first.")
+        print(
+            f"Collection '{collection_name}' not found. Please upload documents first."
+        )
         return
 
     # Query the collection
@@ -149,9 +169,9 @@ def query(collection_name: str, query_text: str, n_results: int = 2) -> None:
 
 
 @app.command()
-def list_collections() -> None:
+def list_collections(host: str, port: int) -> None:
     """List all available collections in the ChromaDB."""
-    client = initialize_chroma_client()
+    client = chromadb.HttpClient(host, port)
     collections = client.list_collections()
 
     if not collections:
@@ -159,8 +179,14 @@ def list_collections() -> None:
         return
 
     print(f"Found {len(collections)} collections:")
-    for i, collection in enumerate(collections, 1):
-        print(f"{i}. {collection.name} (documents: {collection.count()})")
+    for i, collection_name in enumerate(collections, 1):
+        try:
+            # Get the collection to access its methods
+            collection = client.get_collection(name=collection_name)
+            doc_count = collection.count()
+            print(f"{i}. {collection_name} (documents: {doc_count})")
+        except Exception as e:
+            print(f"{i}. {collection_name} (error accessing collection: {e})")
 
 
 if __name__ == "__main__":
