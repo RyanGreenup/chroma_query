@@ -19,3 +19,5 @@ get_example_docs:
 
 example-query:
     uv run -- python main.py query "example_docs4" "signals and slots" --host localhost --port 8000
+
+    # uv run -- python main.py query "solid" 'signals' --n-results 5 --inject
