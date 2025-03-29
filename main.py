@@ -2,11 +2,7 @@ import json
 from pathlib import Path
 from typing import Sequence
 import chromadb
-from pprint import pprint
-from chromadb.errors import UniqueConstraintError
 from chromadb.types import Metadata
-import pandas as pd
-from tqdm import tqdm
 import uuid
 from chromadb.api.types import QueryResult
 from chromadb.api import ClientAPI
@@ -101,7 +97,7 @@ def load_documents_from_directory(
 @app.command("mk")
 def user_create_collection(name: str, host: str = "localhost", port: int = 8000):
     client = chromadb.HttpClient(host, port)
-    create_collection(client, name)
+    _ = create_collection(client, name)
 
 
 def list_collections(client: ClientAPI) -> Sequence[CollectionName]:
@@ -199,6 +195,9 @@ def query(
         if docs := results.get("documents"):
             print(f"Found {len(docs[0])} results:")
             for i, chunks in enumerate(docs):
+                # AI! Fix this error:
+                # Diagnostics:
+                # basedpyright: Object of type "None" is not subscriptable [reportOptionalSubscript]
                 print(
                     f"\nResults for query: {results['metadatas'][i] if 'metadatas' in results else ''}"
                 )
