@@ -34,6 +34,13 @@ This tool is used to inject context into LLMs and agents like Aider. It could al
 6. Use from Aider. The default chunk size is 1000 tokens (ideal for embedding), so 2 results is 2000 tokens off the context window
     3. `/run uv run -- python main.py query my-docs 'Some Search Term' --n-results 2 --inject`
 
+7. Make aliases whilst running a project
+
+```
+alias cs-ark="chroma-search --host localhost --port 8000 query 'web.components.ark' --n-results 2 --inject"
+alias cs="chroma-search --host localhost --port 8000"
+```
+
 
 ## Usage
 

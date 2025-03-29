@@ -311,5 +311,11 @@ def upload_url(
         print(f"Error processing URL: {e}")
 
 
+# Import the default_docs module to make its commands available
+from . import default_docs
+
+# Add the default_docs commands as a subcommand group
+app.add_typer(default_docs.app, name="defaults", help="Work with default documentation")
+
 if __name__ == "__main__":
     app()
