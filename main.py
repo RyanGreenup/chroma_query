@@ -43,30 +43,10 @@ def query_collection(
     return collection.query(query_texts=query_texts, n_results=n_results)
 
 
-def convert_results_to_dataframe(results: QueryResult) -> pd.DataFrame:
-    """Convert query results to a pandas DataFrame."""
-
-    ids = results.get("ids", [])
-    docs = results.get("documents", [])
-    distances = results.get("distances", [])
-    metadatas = results.get("metadatas", [])
-
-    data = {
-        "ids": [item for sublist in ids for item in sublist] if ids else [],
-        "documents": [item for sublist in docs for item in sublist] if docs else [],
-        "distances": (
-            [item for sublist in distances for item in sublist] if distances else []
-        ),
-        "metadatas": (
-            [item for sublist in metadatas for item in sublist] if metadatas else []
-        ),
-    }
-    return pd.DataFrame(data)
 
 
 def chunk_text(text: str, chunk_size: int = 2000) -> list[str]:
     """Split text into chunks of specified size."""
-    print(text)
     return [text[i : i + chunk_size] for i in range(0, len(text), chunk_size)]
 
 
@@ -193,6 +173,7 @@ def query(
     n_results: int = 2,
     host: str = "localhost",
     port: int = 8000,
+    inject: bool = False,
 ) -> None:
     """Query a ChromaDB collection with the specified text."""
     client = chromadb.HttpClient(host, port)
@@ -209,9 +190,15 @@ def query(
     # Query the collection
     results = query_collection(collection, [query_text], n_results=n_results)
 
-    # Display results
-    df = convert_results_to_dataframe(results)
-    pprint(df)
+    if not inject:
+        # Display results
+        print(json.dumps(results, indent=4))
+    else:
+        if (docs := results.get("documents")):
+            print(len(docs))
+            # for chunk in docs:
+            #     if (c := chunk.pop()):
+            #         print(c)
 
 
 
