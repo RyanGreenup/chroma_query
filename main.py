@@ -195,10 +195,12 @@ def query(
         print(json.dumps(results, indent=4))
     else:
         if (docs := results.get("documents")):
-            print(len(docs))
-            # for chunk in docs:
-            #     if (c := chunk.pop()):
-            #         print(c)
+            print(f"Found {len(docs[0])} results:")
+            for i, chunks in enumerate(docs):
+                print(f"\nResults for query: {results['metadatas'][i] if 'metadatas' in results else ''}")
+                for j, chunk in enumerate(chunks):
+                    print(f"\n--- Result {j+1} ---")
+                    print(chunk)
 
 
 
