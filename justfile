@@ -14,6 +14,8 @@ check: fmt
 
 
 get_example_docs:
-    mkdir -p ./example_docs
-    cd ./example_docs
-    wget 'https://raw.githubusercontent.com/solidjs/solid-docs/cfae29e4b3f1616f65ad78736be58418676406c7/public/llms.txt'
+    curl 'https://raw.githubusercontent.com/solidjs/solid-docs/cfae29e4b3f1616f65ad78736be58418676406c7/public/llms.txt' > example_docs/solid_llms.txt
+
+
+example-query:
+    uv run -- python main.py query "example_docs4" "signals and slots" --host localhost --port 8000
