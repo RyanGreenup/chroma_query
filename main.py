@@ -129,7 +129,7 @@ def upload(
         collection = create_collection(client, name=collection_name)
     except UniqueConstraintError:
         print(f"Warning: {collection_name} already exists")
-        # Get the collection here AI!
+        collection = client.get_collection(name=collection_name)
 
     # Load documents from the specified directory
     if docs_dir.exists() and docs_dir.is_dir():
