@@ -150,7 +150,7 @@ def delete_collection(
 ) -> None:
     """Delete a ChromaDB collection by name."""
     client = chromadb.HttpClient(host, port)
-    
+
     try:
         client.delete_collection(name=collection_name)
         print(f"Collection '{collection_name}' has been deleted.")
@@ -189,7 +189,7 @@ def query(
 
 
 @app.command()
-def list_collections(host: str, port: int) -> None:
+def list_collections(host: str = "localhost", port: int=8000) -> None:
     """List all available collections in the ChromaDB."""
     client = chromadb.HttpClient(host, port)
     collections = client.list_collections()
