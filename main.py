@@ -1,4 +1,6 @@
+import json
 from pathlib import Path
+from typing import Sequence
 import chromadb
 from pprint import pprint
 from chromadb.errors import UniqueConstraintError
@@ -8,7 +10,7 @@ from tqdm import tqdm
 import uuid
 from chromadb.api.types import QueryResult
 from chromadb.api import ClientAPI
-from chromadb.api.models.Collection import Collection
+from chromadb.api.models.Collection import Collection, CollectionName
 
 
 import typer
@@ -24,6 +26,7 @@ def initialize_chroma_client() -> ClientAPI:
 def create_collection(client: ClientAPI, name: str) -> Collection:
     """Create a collection with the given name."""
     return client.create_collection(name=name)
+
 
 
 def add_documents(
@@ -117,6 +120,49 @@ def load_documents_from_directory(
                 print(f"Error processing file {file_path}: {e}")
 
 
+@app.command("mk")
+def user_create_collection(name: str, host: str = "localhost", port: int  = 8000):
+    client = chromadb.HttpClient(host, port)
+    create_collection(client, name)
+
+def list_collections(client: ClientAPI) -> Sequence[CollectionName]:
+    return client.list_collections()
+
+@app.command("ls")
+def user_list_collections(host: str = "localhost", port: int=8000) -> None:
+    """List all available collections in the ChromaDB."""
+    client = chromadb.HttpClient(host, port)
+    collections = list_collections(client)
+
+    if not collections:
+        print("No collections found.")
+        return
+
+    # pprint(collections)
+    info = dict()
+
+    for i, collection_name in enumerate(collections, 1):
+        try:
+            # Get the collection to access its methods
+            collection = client.get_collection(name=collection_name)
+            try:
+                id = str(collection.id)
+            except Exception as e:
+                id ="ERROR: {e}"
+            try:
+                doc_count = collection.count()
+            except Exception as e:
+                doc_count = f"ERROR: {e}"
+            info[id] = {"name": collection.name, "doc_count": doc_count}
+            print(json.dumps(info, indent=2))
+        except Exception as e:
+            print(f"{i}. {collection_name} (error accessing collection: {e})")
+
+def collection_exists(client: ClientAPI, collection_name: str) -> bool:
+    collections = [c.name for c in list_collections(client)]
+    return collection_name in collections
+
+
 @app.command()
 def upload(
     collection_name: str,
@@ -127,11 +173,10 @@ def upload(
 ) -> None:
     """Upload documents from a directory to a ChromaDB collection."""
     client = chromadb.HttpClient(host, port)
-    try:
+    if not collection_exists(client, collection_name):
         collection = create_collection(client, name=collection_name)
-    except UniqueConstraintError as e:
-        print(f"Warning: {collection_name} already exists, delete it first!")
-        raise e
+    else:
+        collection = client.get_collection(collection_name)
 
     # Load documents from the specified directory
     if docs_dir.exists() and docs_dir.is_dir():
@@ -140,25 +185,6 @@ def upload(
         print(f"Directory {docs_dir} not found")
 
     print(f"Documents uploaded to collection '{collection_name}'")
-
-
-@app.command()
-def delete_collection(
-    collection_name: str,
-    host: str = "localhost",
-    port: int = 8000,
-) -> None:
-    """Delete a ChromaDB collection by name."""
-    client = chromadb.HttpClient(host, port)
-
-    try:
-        client.delete_collection(name=collection_name)
-        print(f"Collection '{collection_name}' has been deleted.")
-    except ValueError:
-        print(f"Collection '{collection_name}' not found.")
-    except Exception as e:
-        print(f"Error deleting collection '{collection_name}': {e}")
-
 
 @app.command()
 def query(
@@ -188,94 +214,27 @@ def query(
     pprint(df)
 
 
-@app.command()
-def rename_collection(
-    old_name: str,
-    new_name: str,
+
+@app.command("rm")
+def delete_collection(
+    collection_name: str,
     host: str = "localhost",
     port: int = 8000,
 ) -> None:
-    """Rename a ChromaDB collection."""
+    """Delete a ChromaDB collection by name."""
     client = chromadb.HttpClient(host, port)
-    
-    # Check if old collection exists
+
     try:
-        old_collection = client.get_collection(name=old_name)
+        client.delete_collection(name=collection_name)
+        print(f"Collection '{collection_name}' has been deleted.")
     except ValueError:
-        print(f"Collection '{old_name}' not found.")
-        return
-    
-    # Check if new name already exists
-    try:
-        client.get_collection(name=new_name)
-        print(f"Collection '{new_name}' already exists. Please choose a different name.")
-        return
-    except (ValueError, chromadb.errors.InvalidCollectionException):
-        # This is expected - we want the new name to not exist yet
-        pass
-    
-    # Create new collection
-    try:
-        new_collection = client.create_collection(name=new_name)
+        print(f"Collection '{collection_name}' not found.")
     except Exception as e:
-        print(f"Error creating new collection '{new_name}': {e}")
-        return
-    
-    # Get all data from old collection
-    try:
-        # Get all IDs from the collection
-        all_ids = old_collection.get()["ids"]
-        
-        if all_ids:
-            # Fetch all documents with their metadata
-            data = old_collection.get(ids=all_ids)
-            
-            # Add all documents to the new collection
-            if data["documents"]:
-                new_collection.add(
-                    documents=data["documents"],
-                    ids=data["ids"],
-                    metadatas=data["metadatas"] if data["metadatas"] else None
-                )
-                
-            print(f"Transferred {len(all_ids)} documents to new collection '{new_name}'")
-        else:
-            print(f"Collection '{old_name}' is empty. Created empty collection '{new_name}'")
-        
-        # Delete old collection
-        client.delete_collection(name=old_name)
-        print(f"Successfully renamed collection from '{old_name}' to '{new_name}'")
-        
-    except Exception as e:
-        print(f"Error during rename operation: {e}")
-        print("Attempting to clean up...")
-        try:
-            # Try to delete the new collection if something went wrong
-            client.delete_collection(name=new_name)
-        except:
-            pass
-        print("Rename operation failed. Original collection is unchanged.")
+        print(f"Error deleting collection '{collection_name}': {e}")
 
 
-@app.command()
-def list_collections(host: str = "localhost", port: int=8000) -> None:
-    """List all available collections in the ChromaDB."""
-    client = chromadb.HttpClient(host, port)
-    collections = client.list_collections()
 
-    if not collections:
-        print("No collections found.")
-        return
 
-    print(f"Found {len(collections)} collections:")
-    for i, collection_name in enumerate(collections, 1):
-        try:
-            # Get the collection to access its methods
-            collection = client.get_collection(name=collection_name)
-            doc_count = collection.count()
-            print(f"{i}. {collection_name} (documents: {doc_count})")
-        except Exception as e:
-            print(f"{i}. {collection_name} (error accessing collection: {e})")
 
 
 if __name__ == "__main__":
