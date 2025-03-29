@@ -106,6 +106,9 @@ just check
         - [Exemplar MCP server for Postgres (configured to work with Zed Client)](https://github.com/zed-industries/postgres-context-server/blob/main/index.mjs)
         - [MCP Docs](https://zed.dev/docs/assistant/context-servers)
 
+    - See Also
+        - [Microsoft/markitdown MCP Server](https://github.com/microsoft/markitdown/tree/main/packages/markitdown-mcp)
+
 - Switch to mxbai, see generally [^1743219892] [^1743219905]
 
 
