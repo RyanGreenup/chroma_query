@@ -15,9 +15,7 @@ def create_collection(client: ClientAPI, name: str) -> Collection:
     return client.create_collection(name=name)
 
 
-def add_documents(
-    collection: Collection, documents: List[str], ids: List[str]
-) -> None:
+def add_documents(collection: Collection, documents: List[str], ids: List[str]) -> None:
     """Add documents to the specified collection."""
     collection.add(documents=documents, ids=ids)
 
