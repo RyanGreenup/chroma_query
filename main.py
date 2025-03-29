@@ -1,7 +1,7 @@
 import chromadb
 from pprint import pprint
 import pandas as pd
-from typing import Any, List
+from typing import List
 from chromadb.api.types import QueryResult
 from chromadb.api import ClientAPI
 from chromadb.api.models.Collection import Collection
@@ -31,12 +31,12 @@ def query_collection(
 
 def convert_results_to_dataframe(results: QueryResult) -> pd.DataFrame:
     """Convert query results to a pandas DataFrame."""
-    
+
     ids = results.get("ids", [])
     docs = results.get("documents", [])
     distances = results.get("distances", [])
     metadatas = results.get("metadatas", [])
-    
+
     data = {
         "ids": [item for sublist in ids for item in sublist] if ids else [],
         "documents": [item for sublist in docs for item in sublist] if docs else [],
@@ -46,6 +46,7 @@ def convert_results_to_dataframe(results: QueryResult) -> pd.DataFrame:
     return pd.DataFrame(data)
 
 
+# Factor out the logic for loading all the documents in AI!
 def main() -> None:
     client = initialize_chroma_client()
     collection = create_collection(client, name="my_collection")
