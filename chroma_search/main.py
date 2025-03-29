@@ -132,9 +132,12 @@ def user_list_collections(host: str = "localhost", port: int = 8000) -> None:
             except Exception as e:
                 doc_count = f"ERROR: {e}"
             info[id] = {"name": collection.name, "doc_count": doc_count}
-            print(json.dumps(info, indent=2))
         except Exception as e:
             print(f"{i}. {collection_name} (error accessing collection: {e})")
+    
+    # Print all collection info at once
+    if info:
+        print(json.dumps(info, indent=2))
 
 
 def collection_exists(client: ClientAPI, collection_name: str) -> bool:
