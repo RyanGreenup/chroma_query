@@ -60,19 +60,13 @@ def convert_results_to_dataframe(results: QueryResult) -> pd.DataFrame:
     return pd.DataFrame(data)
 
 
-def load_sample_documents(collection: Collection) -> None:
-    """Load sample documents into the collection."""
-    documents = ["A really fancy bar", "I took the dog for a walk", "I went to bed"]
-    ids = ["id1", "id2", "id3"]
-    add_documents(collection, documents, ids)
-
 
 def chunk_text(text: str, chunk_size: int = 2000) -> list[str]:
     """Split text into chunks of specified size."""
     return [text[i : i + chunk_size] for i in range(0, len(text), chunk_size)]
 
 
-def load_documents_from_directory(collection: Collection, directory: Path) -> None:
+def load_documents_from_directory(collection: Collection, directory: Path, chunk_size: int = int(2000/4)) -> None:
     """
     Walk over a directory, read files, split into chunks, and load into ChromaDB.
 
@@ -95,7 +89,7 @@ def load_documents_from_directory(collection: Collection, directory: Path) -> No
                     continue
 
                 # Split into chunks
-                chunks = chunk_text(content)
+                chunks = chunk_text(content, chunk_size)
 
                 # Generate unique IDs for each chunk
                 ids = [str(uuid.uuid4()) for _ in range(len(chunks))]
@@ -120,19 +114,17 @@ def load_documents_from_directory(collection: Collection, directory: Path) -> No
 
 
 @app.command()
-def upload(collection_name: str, docs_dir: Path) -> None:
+def upload(collection_name: str, docs_dir: Path, chunk_size: int = int(2000/4)) -> None:
     """Upload documents from a directory to a ChromaDB collection."""
     client = initialize_chroma_client()
     collection = create_collection(client, name=collection_name)
 
     # Load documents from the specified directory
     if docs_dir.exists() and docs_dir.is_dir():
-        load_documents_from_directory(collection, docs_dir)
+        load_documents_from_directory(collection, docs_dir, chunk_size)
     else:
-        # Fall back to sample documents if directory doesn't exist
-        print(f"Directory {docs_dir} not found. Loading sample documents instead.")
-        load_sample_documents(collection)
-    
+        print(f"Directory {docs_dir} not found")
+
     print(f"Documents uploaded to collection '{collection_name}'")
 
 
@@ -140,7 +132,7 @@ def upload(collection_name: str, docs_dir: Path) -> None:
 def query(collection_name: str, query_text: str, n_results: int = 2) -> None:
     """Query a ChromaDB collection with the specified text."""
     client = initialize_chroma_client()
-    
+
     # Get the existing collection
     try:
         collection = client.get_collection(name=collection_name)
@@ -161,11 +153,11 @@ def list_collections() -> None:
     """List all available collections in the ChromaDB."""
     client = initialize_chroma_client()
     collections = client.list_collections()
-    
+
     if not collections:
         print("No collections found.")
         return
-    
+
     print(f"Found {len(collections)} collections:")
     for i, collection in enumerate(collections, 1):
         print(f"{i}. {collection.name} (documents: {collection.count()})")
