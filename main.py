@@ -189,6 +189,75 @@ def query(
 
 
 @app.command()
+def rename_collection(
+    old_name: str,
+    new_name: str,
+    host: str = "localhost",
+    port: int = 8000,
+) -> None:
+    """Rename a ChromaDB collection."""
+    client = chromadb.HttpClient(host, port)
+    
+    # Check if old collection exists
+    try:
+        old_collection = client.get_collection(name=old_name)
+    except ValueError:
+        print(f"Collection '{old_name}' not found.")
+        return
+    
+    # Check if new name already exists
+    try:
+        client.get_collection(name=new_name)
+        print(f"Collection '{new_name}' already exists. Please choose a different name.")
+        return
+    except ValueError:
+        # This is expected - we want the new name to not exist yet
+        pass
+    
+    # Create new collection
+    try:
+        new_collection = client.create_collection(name=new_name)
+    except Exception as e:
+        print(f"Error creating new collection '{new_name}': {e}")
+        return
+    
+    # Get all data from old collection
+    try:
+        # Get all IDs from the collection
+        all_ids = old_collection.get()["ids"]
+        
+        if all_ids:
+            # Fetch all documents with their metadata
+            data = old_collection.get(ids=all_ids)
+            
+            # Add all documents to the new collection
+            if data["documents"]:
+                new_collection.add(
+                    documents=data["documents"],
+                    ids=data["ids"],
+                    metadatas=data["metadatas"] if data["metadatas"] else None
+                )
+                
+            print(f"Transferred {len(all_ids)} documents to new collection '{new_name}'")
+        else:
+            print(f"Collection '{old_name}' is empty. Created empty collection '{new_name}'")
+        
+        # Delete old collection
+        client.delete_collection(name=old_name)
+        print(f"Successfully renamed collection from '{old_name}' to '{new_name}'")
+        
+    except Exception as e:
+        print(f"Error during rename operation: {e}")
+        print("Attempting to clean up...")
+        try:
+            # Try to delete the new collection if something went wrong
+            client.delete_collection(name=new_name)
+        except:
+            pass
+        print("Rename operation failed. Original collection is unchanged.")
+
+
+@app.command()
 def list_collections(host: str = "localhost", port: int=8000) -> None:
     """List all available collections in the ChromaDB."""
     client = chromadb.HttpClient(host, port)
