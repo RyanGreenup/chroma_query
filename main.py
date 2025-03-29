@@ -195,12 +195,10 @@ def query(
         if docs := results.get("documents"):
             print(f"Found {len(docs[0])} results:")
             for i, chunks in enumerate(docs):
-                # AI! Fix this error:
-                # Diagnostics:
-                # basedpyright: Object of type "None" is not subscriptable [reportOptionalSubscript]
-                print(
-                    f"\nResults for query: {results['metadatas'][i] if 'metadatas' in results else ''}"
-                )
+                query_info = ""
+                if 'metadatas' in results and results['metadatas'] is not None:
+                    query_info = results['metadatas'][i]
+                print(f"\nResults for query: {query_info}")
                 for j, chunk in enumerate(chunks):
                     print(f"\n--- Result {j+1} ---")
                     print(chunk)
