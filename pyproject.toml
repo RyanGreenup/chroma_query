@@ -1,5 +1,5 @@
 [project]
-name = "chroma-mcp"
+name = "chroma-search"
 version = "0.1.0"
 description = "Add your description here"
 readme = "README.md"
@@ -14,3 +14,13 @@ dev = [
     "basedpyright>=1.28.4",
     "black>=25.1.0",
 ]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["chroma_search"]
+
+[project.scripts]
+chroma-search = "chroma_search.main:app"
