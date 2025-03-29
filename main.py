@@ -2,14 +2,17 @@ import chromadb
 from pprint import pprint
 import pandas as pd
 from typing import Any, List
+from chromadb.api.types import QueryResult
+from chromadb.api import ClientAPI
+from chromadb.api.models.Collection import Collection
 
 
-def initialize_chroma_client() -> chromadb.ClientAPI:
+def initialize_chroma_client() -> ClientAPI:
     """Initialize and return a Chroma client."""
     return chromadb.Client()
 
 
-def create_collection(client: chromadb.ClientAPI, name: str) -> chromadb.Collection:
+def create_collection(client: ClientAPI, name: str) -> Collection:
     """Create a collection with the given name."""
     return client.create_collection(name=name)
 
@@ -21,34 +24,25 @@ def add_documents(collection: chromadb.Collection, documents: List[str], ids: Li
 
 def query_collection(
     collection: chromadb.Collection, query_texts: List[str], n_results: int
-) -> dict:
+) -> QueryResult:
     """Query the collection with specific texts and return results."""
     return collection.query(query_texts=query_texts, n_results=n_results)
 
 
-def convert_results_to_dataframe(results: dict) -> pd.DataFrame:
+def convert_results_to_dataframe(results: QueryResult) -> pd.DataFrame:
     """Convert query results to a pandas DataFrame."""
+    
+    ids = results.get("ids", [])
+    docs = results.get("documents", [])
+    distances = results.get("distances", [])
+    metadatas = results.get("metadatas", [])
+    
     data = {
-        "ids": (
-            [item for sublist in results.get("ids", []) for item in sublist]
-            if results.get("ids")
-            else []
-        ),
-        "documents": (
-            [item for sublist in results.get("documents", []) for item in sublist]
-            if results.get("documents")
-            else []
-        ),
-        "distances": (
-            [item for sublist in results.get("distances", []) for item in sublist]
-            if results.get("distances")
-            else []
-        ),
-        "metadatas": (
-            [item for sublist in results.get("metadatas", []) for item in sublist]
-            if results.get("metadatas")
-            else []
-        ),
+        "ids": [item for sublist in ids for item in sublist] if results.get("ids") else [],
+        # Continue the pattern AI!
+        "documents": [item for sublist in results.get("documents", []) for item in sublist] if results.get("documents") else [],
+        "distances": [item for sublist in results.get("distances", []) for item in sublist] if results.get("distances") else [],
+        "metadatas": [item for sublist in results.get("metadatas", []) for item in sublist] if results.get("metadatas") else [],
     }
     return pd.DataFrame(data)
 
