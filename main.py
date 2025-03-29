@@ -156,5 +156,20 @@ def query(collection_name: str, query_text: str, n_results: int = 2) -> None:
     pprint(df)
 
 
+@app.command()
+def list_collections() -> None:
+    """List all available collections in the ChromaDB."""
+    client = initialize_chroma_client()
+    collections = client.list_collections()
+    
+    if not collections:
+        print("No collections found.")
+        return
+    
+    print(f"Found {len(collections)} collections:")
+    for i, collection in enumerate(collections, 1):
+        print(f"{i}. {collection.name} (documents: {collection.count()})")
+
+
 if __name__ == "__main__":
     app()
