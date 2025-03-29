@@ -8,3 +8,9 @@ dependencies = [
     "chromadb>=0.6.3",
     "pandas>=2.2.3",
 ]
+
+[dependency-groups]
+dev = [
+    "basedpyright>=1.28.4",
+    "black>=25.1.0",
+]
