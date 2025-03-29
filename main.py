@@ -1,8 +1,7 @@
 import chromadb
-from chromadb.config import Settings
 from pprint import pprint
 import pandas as pd
-from typing import list, dict, Any, Optional
+from typing import Any, Optional, list
 
 
 def initialize_chroma_client():
