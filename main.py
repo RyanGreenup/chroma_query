@@ -159,7 +159,7 @@ def user_list_collections(host: str = "localhost", port: int=8000) -> None:
             print(f"{i}. {collection_name} (error accessing collection: {e})")
 
 def collection_exists(client: ClientAPI, collection_name: str) -> bool:
-    collections = [c.name for c in list_collections(client)]
+    collections = list_collections(client)
     return collection_name in collections
 
 
