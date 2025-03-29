@@ -7,6 +7,8 @@ import uuid
 from chromadb.api.types import QueryResult
 from chromadb.api import ClientAPI
 from chromadb.api.models.Collection import Collection, CollectionName
+import requests
+import markdownify
 
 
 import typer
@@ -220,6 +222,87 @@ def delete_collection(
         print(f"Collection '{collection_name}' not found.")
     except Exception as e:
         print(f"Error deleting collection '{collection_name}': {e}")
+
+
+def fetch_and_convert_url(url: str) -> str:
+    """
+    Fetch content from a URL and convert HTML to markdown.
+    
+    Args:
+        url: The URL to fetch content from
+        
+    Returns:
+        Markdown text from the URL
+    """
+    try:
+        response = requests.get(url, timeout=30)
+        response.raise_for_status()
+        html_content = response.text
+        markdown_content = markdownify.markdownify(html_content)
+        return markdown_content
+    except Exception as e:
+        raise ValueError(f"Error fetching or converting URL {url}: {e}")
+
+
+@app.command()
+def upload_url(
+    collection_name: str,
+    url: str,
+    chunk_size: int = int(DEFAULT_CHUNK_SIZE),
+    host: str = "localhost",
+    port: int = 8000,
+) -> None:
+    """
+    Upload content from a URL to a ChromaDB collection.
+    
+    Args:
+        collection_name: Name of the collection to add content to
+        url: URL to fetch content from
+        chunk_size: Size of text chunks to split content into
+        host: ChromaDB host
+        port: ChromaDB port
+    """
+    client = chromadb.HttpClient(host, port)
+    
+    # Get or create collection
+    if not collection_exists(client, collection_name):
+        collection = create_collection(client, name=collection_name)
+    else:
+        collection = client.get_collection(collection_name)
+    
+    try:
+        # Fetch and convert URL content
+        print(f"Fetching content from {url}...")
+        markdown_content = fetch_and_convert_url(url)
+        
+        # Skip empty content
+        if not markdown_content.strip():
+            print("URL returned empty content")
+            return
+            
+        # Split into chunks
+        chunks = chunk_text(markdown_content, chunk_size)
+        
+        # Generate unique IDs for each chunk
+        ids = [str(uuid.uuid4()) for _ in range(len(chunks))]
+        
+        # Add metadata about the source
+        metadatas: list[Metadata] = [
+            {
+                "source": url,
+                "chunk_index": i,
+                "total_chunks": len(chunks),
+            }
+            for i in range(len(chunks))
+        ]
+        
+        # Add to collection
+        collection.add(documents=chunks, ids=ids, metadatas=metadatas)
+        
+        print(f"Added {len(chunks)} chunks from {url} to collection '{collection_name}'")
+        
+    except Exception as e:
+        print(f"Error processing URL: {e}")
 
 
 if __name__ == "__main__":
