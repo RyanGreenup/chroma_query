@@ -63,6 +63,7 @@ def convert_results_to_dataframe(results: QueryResult) -> pd.DataFrame:
 
 def chunk_text(text: str, chunk_size: int = 2000) -> list[str]:
     """Split text into chunks of specified size."""
+    print(text)
     return [text[i : i + chunk_size] for i in range(0, len(text), chunk_size)]
 
 
@@ -92,6 +93,7 @@ def load_documents_from_directory(
 
                 # Split into chunks
                 chunks = chunk_text(content, chunk_size)
+                print(chunks)
 
                 # Generate unique IDs for each chunk
                 ids = [str(uuid.uuid4()) for _ in range(len(chunks))]
@@ -127,9 +129,9 @@ def upload(
     client = chromadb.HttpClient(host, port)
     try:
         collection = create_collection(client, name=collection_name)
-    except UniqueConstraintError:
-        print(f"Warning: {collection_name} already exists")
-        collection = client.get_collection(name=collection_name)
+    except UniqueConstraintError as e:
+        print(f"Warning: {collection_name} already exists, delete it first!")
+        raise e
 
     # Load documents from the specified directory
     if docs_dir.exists() and docs_dir.is_dir():
@@ -138,6 +140,8 @@ def upload(
         print(f"Directory {docs_dir} not found")
 
     print(f"Documents uploaded to collection '{collection_name}'")
+
+# Write a function to delete a collection AI!
 
 
 @app.command()
