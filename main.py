@@ -119,9 +119,9 @@ def load_documents_from_directory(collection: Collection, directory: Path) -> No
                 print(f"Error processing file {file_path}: {e}")
 
 
-# Create two separate commands, one to upload files and the other to query files AI!
 @app.command()
-def main(collection_name: str, docs_dir: Path) -> None:
+def upload(collection_name: str, docs_dir: Path) -> None:
+    """Upload documents from a directory to a ChromaDB collection."""
     client = initialize_chroma_client()
     collection = create_collection(client, name=collection_name)
 
@@ -132,10 +132,26 @@ def main(collection_name: str, docs_dir: Path) -> None:
         # Fall back to sample documents if directory doesn't exist
         print(f"Directory {docs_dir} not found. Loading sample documents instead.")
         load_sample_documents(collection)
+    
+    print(f"Documents uploaded to collection '{collection_name}'")
 
-    query_texts = ["Pineapple in a bedroom"]
-    results = query_collection(collection, query_texts, n_results=2)
 
+@app.command()
+def query(collection_name: str, query_text: str, n_results: int = 2) -> None:
+    """Query a ChromaDB collection with the specified text."""
+    client = initialize_chroma_client()
+    
+    # Get the existing collection
+    try:
+        collection = client.get_collection(name=collection_name)
+    except ValueError:
+        print(f"Collection '{collection_name}' not found. Please upload documents first.")
+        return
+
+    # Query the collection
+    results = query_collection(collection, [query_text], n_results=n_results)
+
+    # Display results
     df = convert_results_to_dataframe(results)
     pprint(df)
 
